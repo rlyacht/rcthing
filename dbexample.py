@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 
-"""Toy database program for pair programming interview.
+"""Toy database program for pair programming interview, as described here:
+
+    https://www.recurse.com/pairing-tasks
+
 Provides two methods to get and set values in a (transient) database
 
      /set?{key}={value}...
@@ -11,10 +14,10 @@ import BaseHTTPServer
 import urlparse
 
 HOST = 'localhost'
-PORT = 3141
+PORT = 4000
 
 
-class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
+class ToyDatabase(BaseHTTPServer.BaseHTTPRequestHandler):
     Database = {'fish': 'bream'}
 
     def respond(self, json=None, code=200):
@@ -27,8 +30,8 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     def handle_set(self, parameters):
         print "parameters", parameters
 
-        MyHandler.Database.update({k: v[0] for k, v in parameters.iteritems()})
-        self.respond(MyHandler.Database)
+        ToyDatabase.Database.update({k: v[0] for k, v in parameters.iteritems()})
+        self.respond(ToyDatabase.Database)
 
     def handle_get(self, parameters):
         try:
@@ -38,8 +41,8 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
         print "requested", requested
         try:
-            print {requested: MyHandler.Database[requested]}
-            self.respond({requested: MyHandler.Database[requested]})
+            print {requested: ToyDatabase.Database[requested]}
+            self.respond({requested: ToyDatabase.Database[requested]})
         except KeyError:
             self.respond(None, 404)
 
@@ -55,18 +58,21 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         try:
             print "parameters", parameters
             print "path", parsed.path
-            MyHandler.handlers[parsed.path](self, parameters)
+            ToyDatabase.handlers[parsed.path](self, parameters)
         except KeyError:
             self.respond(None, 403)
 
-
-if __name__ == '__main__':
-    server_class = BaseHTTPServer.HTTPServer
-    httpd = server_class((HOST, PORT), MyHandler)
-
+def main():
+    server = BaseHTTPServer.HTTPServer((HOST,PORT), ToyDatabase)
     try:
-        httpd.serve_forever()
+        server.serve_forever()
     except KeyboardInterrupt:
         pass
 
-    httpd.server_close()
+    print "Shutting Down"
+    server.server_close()
+
+
+if __name__ == '__main__':
+    main()
+
